@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Editar Vehículo</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container py-4">
+
+  <h1 class="mb-4">Editar Vehículo</h1>
+
+  <form id="editarVehiculoForm" enctype="multipart/form-data">
+    <div class="mb-3">
+      <label for="modelo" class="form-label">Modelo</label>
+      <input type="text" class="form-control" id="modelo" required>
+    </div>
+    <div class="mb-3">
+      <label for="marca" class="form-label">Marca</label>
+      <input type="text" class="form-control" id="marca" required>
+    </div>
+    <div class="mb-3">
+      <label for="anio" class="form-label">Año</label>
+      <input type="number" class="form-control" id="anio" required>
+    </div>
+    <div class="mb-3">
+      <label for="imagen" class="form-label">Imagen</label>
+      <input type="file" class="form-control" id="imagen">
+    </div>
+    <div class="mb-3">
+      <label for="tipo_id" class="form-label">Tipo de Vehículo</label>
+      <select id="tipo_id" class="form-select">
+        <!-- Opciones serán cargadas por JS -->
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Actualizar Vehículo</button>
+    <a href="listarVehiculos.html" class="btn btn-secondary ms-2">Volver a la lista</a>
+  </form>
+
+  <script>
+    async function cargarTipos() {
+      const res = await fetch('/api/tipos');
+      const tipos = await res.json();
+      const selectTipo = document.getElementById('tipo_id');
+      tipos.forEach(tipo => {
+        const option = document.createElement('option');
+        option.value = tipo.id;
+        option.textContent = tipo.nombre;
+        selectTipo.appendChild(option);
+      });
+    }
+
+    async function cargarVehiculo() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      const res = await fetch(`/api/vehiculos/${id}`);
+      const vehiculo = await res.json();
+
+      document.getElementById('modelo').value = vehiculo.modelo;
+      document.getElementById('marca').value = vehiculo.marca;
+      document.getElementById('anio').value = vehiculo.anio;
+      document.getElementById('tipo_id').value = vehiculo.tipo_id;
+    }
+
+    document.getElementById('editarVehiculoForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      const modelo = document.getElementById('modelo').value;
+      const marca = document.getElementById('marca').value;
+      const anio = document.getElementById('anio').value;
+      const tipo_id = document.getElementById('tipo_id').value;
+      const imagen = document.getElementById('imagen').files[0];
+
+      const formData = new FormData();
+      formData.append('modelo', modelo);
+      formData.append('marca', marca);
+      formData.append('anio', anio);
+      formData.append('tipo_id', tipo_id);
+      if (imagen) formData.append('imagen', imagen);
+
+      await fetch(`/api/vehiculos/${id}`, {
+        method: 'PUT',
+        body: formData
+      });
+
+      alert('Vehículo actualizado exitosamente');
+      window.location.href = 'listarVehiculos.html';
+    });
+
+    cargarTipos();
+    cargarVehiculo();
+  </script>
+</body>
+</html>
